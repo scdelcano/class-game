@@ -601,3 +601,6 @@
 .reading-card .part-0 { color: #a8dcff; }
 .reading-card .part-1 { color: #fff3a6; }
 .reading-card .part-dot { color: rgba(255, 255, 255, 0.5); margin: 0 0.15em; }
+
+/* grown-ups: tabs (reuses .tabs/.tab from the student editor) */
+.grownups-tabs { width: min(640px, 100%); flex-shrink: 0; }

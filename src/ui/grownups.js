@@ -38,20 +38,32 @@ export function holdToOpen(button, onOpen) {
 }
 
 /**
- * Grown-ups: learning settings (grade, which facts, division, how often
- * students make mistakes), progress, and tools.
+ * Grown-ups: learning settings, progress, and tools, split into tabs.
+ *
+ * To add a tab (e.g. a new subject), add an entry to `tabs` below: an id,
+ * an icon, a label, and a `sections()` function that returns the cards to
+ * show. Everything else (tab bar, switching, re-rendering) is shared.
  */
 export function createGrownups({ learning, onClose }) {
-  const body = h('div', { class: 'grownups-body' });
+  const tabBar = h('nav', { class: 'tabs grownups-tabs', role: 'tablist' });
+  const body = h('div', { class: 'grownups-body', role: 'tabpanel' });
   const el = h('div', { class: 'screen grownups', hidden: true },
     h('header', { class: 'screen-header' },
       h('h1', {}, h('span', { 'aria-hidden': 'true' }, '⚙️ '), 'Grown-ups'),
       h('span', { class: 'roster-count' }, 'Everything stays on this tablet.'),
       h('button', { class: 'big-button primary', type: 'button', onclick: close }, '✓ Done'),
     ),
+    tabBar,
     body,
   );
   uiRoot().append(el);
+
+  const tabs = [
+    { id: 'general', icon: '🏫', label: 'General', sections: () => [gradeSection(), weekSection(), mistakesSection(), toolsSection()] },
+    { id: 'math', icon: '🔢', label: 'Math', sections: () => [mathFactsSection(), mathProgress()] },
+    { id: 'reading', icon: '📖', label: 'Reading', sections: () => [weekWordsSection(), readingSection(), readingProgress()] },
+  ];
+  let activeTab = tabs[0].id;
 
   const chip = (label, selected, onclick, extra = '') => h('button', {
     class: `chip${selected ? ' selected' : ''} ${extra}`,
@@ -62,85 +74,114 @@ export function createGrownups({ learning, onClose }) {
   const section = (title, note, ...content) => h('section', { class: 'card gu-section' }, h('h2', {}, title), note ? h('p', { class: 'gu-note' }, note) : null, ...content);
 
   function render() {
+    const tab = tabs.find((t) => t.id === activeTab) ?? tabs[0];
+    tabBar.replaceChildren(...tabs.map((t) => h('button', {
+      class: `tab${t === tab ? ' active' : ''}`,
+      type: 'button',
+      role: 'tab',
+      'aria-selected': String(t === tab),
+      onclick: () => {
+        if (t === tab) return;
+        sfx.pop();
+        activeTab = t.id;
+        render();
+        el.scrollTop = 0;
+      },
+    }, h('span', { class: 'tab-icon', 'aria-hidden': 'true' }, t.icon), t.label)));
+    body.replaceChildren(...tab.sections());
+  }
+
+  // ---------------------------------------------------------------- general
+  function gradeSection() {
+    const st = learning.settings;
+    const pack = learning.math().pack;
+    return section('Grade level', 'Pick her grade (math and reading). Each grade keeps its own progress.',
+      h('div', { class: 'chip-row' }, ...GRADES.map((g) => chip(`${ordinal(g)} grade`, st.grade === g, () => { learning.setSettings({ grade: g, tables: 'auto', readingGroups: 'auto' }); render(); }))),
+      h('p', { class: 'gu-detail' }, `Math: ${pack.title}${pack.standard ? ` · ${pack.standard}` : ''}`),
+      h('p', { class: 'gu-detail' }, `Reading: ${learning.reading().pack.title} · ${learning.reading().pack.standard}`),
+    );
+  }
+
+  function weekSection() {
+    const recent = learning.recent(7);
+    const minutes = Math.round(recent.seconds / 60);
+    const accuracy = recent.problems ? Math.round((recent.right / recent.problems) * 100) : null;
+    return section('This week', `${ordinal(learning.settings.grade)} grade · all subjects, last 7 days`,
+      h('div', { class: 'tiles' },
+        tile(String(learning.history.lessons), 'lessons'),
+        tile(String(recent.problems), 'problems'),
+        tile(accuracy === null ? '–' : `${accuracy}%`, 'right'),
+        tile(`${minutes} min`, 'practice'),
+      ),
+    );
+  }
+
+  function mistakesSection() {
+    const st = learning.settings;
+    return section('Student mistakes', 'How often students answer wrong on purpose, for her to catch.',
+      h('div', { class: 'chip-row' },
+        chip('A few', st.mistakes === 'few', () => { learning.setSettings({ mistakes: 'few' }); render(); }),
+        chip('Some', st.mistakes === 'some', () => { learning.setSettings({ mistakes: 'some' }); render(); }),
+        chip('Lots', st.mistakes === 'lots', () => { learning.setSettings({ mistakes: 'lots' }); render(); }),
+      ),
+    );
+  }
+
+  function toolsSection() {
+    return section('Tools', null,
+      h('div', { class: 'chip-row' },
+        h('a', { class: 'big-button', href: './mic-test.html' }, '🎤 Microphone test'),
+        h('button', {
+          class: 'big-button danger',
+          type: 'button',
+          onclick: async () => {
+            const yes = await confirmDialog({ text: 'Erase all learning progress and stars?', yes: 'Erase', no: 'Keep', icon: '⚠️' });
+            if (!yes) return;
+            learning.resetProgress();
+            showToast('Learning progress erased.', { icon: '🧹' });
+            render();
+          },
+        }, '🧹 Reset learning progress'),
+      ),
+    );
+  }
+
+  // ---------------------------------------------------------------- math
+  function mathFactsSection() {
     const st = learning.settings;
     const math = learning.math();
     const pack = math.pack;
     const auto = !Array.isArray(st.tables);
     const inverseName = pack.kind === 'mult' ? 'division (÷)' : 'subtraction (−)';
+    return section('Which facts', auto
+      ? 'The game starts easy and opens the next group when she knows most of the current ones.'
+      : 'Only the groups you pick will be practiced.',
+    h('div', { class: 'chip-row' },
+      chip('✨ Let the game choose', auto, () => { learning.setSettings({ tables: 'auto' }); render(); }, 'wide-chip'),
+    ),
+    h('div', { class: 'chip-row' }, ...pack.families.map((f) => {
+      const on = !auto && st.tables.includes(f.id);
+      const unlocked = auto && math.activeFamilies().some((a) => a.id === f.id);
+      return chip(f.label, on || unlocked, () => {
+        const current = auto ? math.activeFamilies().map((a) => a.id) : [...st.tables];
+        const next = current.includes(f.id) ? current.filter((id) => id !== f.id) : [...current, f.id];
+        learning.setSettings({ tables: next.length ? next : 'auto' });
+        render();
+      }, auto ? 'soft' : '');
+    })),
+    h('div', { class: 'chip-row' },
+      chip(`Include ${inverseName}`, st.division, () => { learning.setSettings({ division: !st.division }); render(); }),
+    ),
+    h('p', { class: 'gu-detail' }, `${inverseName[0].toUpperCase()}${inverseName.slice(1)} for a fact appears once she knows the matching ${pack.kind === 'mult' ? 'times' : 'plus'} fact.`),
+    );
+  }
 
-    const recent = learning.recent(7);
-    const minutes = Math.round(recent.seconds / 60);
-    const accuracy = recent.problems ? Math.round((recent.right / recent.problems) * 100) : null;
-
-    body.replaceChildren(
-      section('Grade level', 'Pick her grade (math and reading). Each grade keeps its own progress.',
-        h('div', { class: 'chip-row' }, ...GRADES.map((g) => chip(`${ordinal(g)} grade`, st.grade === g, () => { learning.setSettings({ grade: g, tables: 'auto', readingGroups: 'auto' }); render(); }))),
-        h('p', { class: 'gu-detail' }, `Math: ${pack.title}${pack.standard ? ` · ${pack.standard}` : ''}`),
-        h('p', { class: 'gu-detail' }, `Reading: ${learning.reading().pack.title} · ${learning.reading().pack.standard}`),
-      ),
-
-      section('Math: which facts', auto
-        ? 'The game starts easy and opens the next group when she knows most of the current ones.'
-        : 'Only the groups you pick will be practiced.',
-      h('div', { class: 'chip-row' },
-        chip('✨ Let the game choose', auto, () => { learning.setSettings({ tables: 'auto' }); render(); }, 'wide-chip'),
-      ),
-      h('div', { class: 'chip-row' }, ...pack.families.map((f) => {
-        const on = !auto && st.tables.includes(f.id);
-        const unlocked = auto && math.activeFamilies().some((a) => a.id === f.id);
-        return chip(f.label, on || unlocked, () => {
-          const current = auto ? math.activeFamilies().map((a) => a.id) : [...st.tables];
-          const next = current.includes(f.id) ? current.filter((id) => id !== f.id) : [...current, f.id];
-          learning.setSettings({ tables: next.length ? next : 'auto' });
-          render();
-        }, auto ? 'soft' : '');
-      })),
-      h('div', { class: 'chip-row' },
-        chip(`Include ${inverseName}`, st.division, () => { learning.setSettings({ division: !st.division }); render(); }),
-      ),
-      h('p', { class: 'gu-detail' }, `${inverseName[0].toUpperCase()}${inverseName.slice(1)} for a fact appears once she knows the matching ${pack.kind === 'mult' ? 'times' : 'plus'} fact.`),
-      ),
-
-      section('Student mistakes', 'How often students answer wrong on purpose, for her to catch.',
-        h('div', { class: 'chip-row' },
-          chip('A few', st.mistakes === 'few', () => { learning.setSettings({ mistakes: 'few' }); render(); }),
-          chip('Some', st.mistakes === 'some', () => { learning.setSettings({ mistakes: 'some' }); render(); }),
-          chip('Lots', st.mistakes === 'lots', () => { learning.setSettings({ mistakes: 'lots' }); render(); }),
-        ),
-      ),
-
-      section('Math progress', `${ordinal(st.grade)} grade · all subjects, last 7 days`,
-        h('div', { class: 'tiles' },
-          tile(String(learning.history.lessons), 'lessons'),
-          tile(String(recent.problems), 'problems'),
-          tile(accuracy === null ? '–' : `${accuracy}%`, 'right'),
-          tile(`${minutes} min`, 'practice'),
-        ),
-        factGrid(pack, math),
-        h('div', { class: 'legend' }, ...LEVELS.map((l) => h('span', {}, h('i', { style: { background: l.color } }), l.label))),
-        trickyList(math),
-      ),
-
-      weekWordsSection(),
-      readingSection(),
-      readingProgress(),
-
-      section('Tools', null,
-        h('div', { class: 'chip-row' },
-          h('a', { class: 'big-button', href: './mic-test.html' }, '🎤 Microphone test'),
-          h('button', {
-            class: 'big-button danger',
-            type: 'button',
-            onclick: async () => {
-              const yes = await confirmDialog({ text: 'Erase all learning progress and stars?', yes: 'Erase', no: 'Keep', icon: '⚠️' });
-              if (!yes) return;
-              learning.resetProgress();
-              showToast('Learning progress erased.', { icon: '🧹' });
-              render();
-            },
-          }, '🧹 Reset learning progress'),
-        ),
-      ),
+  function mathProgress() {
+    const math = learning.math();
+    return section('Math progress', `${math.pack.title} · colors show how well she knows each fact.`,
+      factGrid(math.pack, math),
+      h('div', { class: 'legend' }, ...LEVELS.map((l) => h('span', {}, h('i', { style: { background: l.color } }), l.label))),
+      trickyList(math),
     );
   }
 
@@ -184,7 +225,7 @@ export function createGrownups({ learning, onClose }) {
     const rd = learning.reading();
     const auto = !Array.isArray(st.readingGroups);
     const groups = rd.pack.families.filter((f) => f.id !== CUSTOM_GROUP);
-    return section('Reading: which words', auto
+    return section('Which words', auto
       ? 'Word groups open one at a time as she reads the earlier ones well.'
       : 'Only the groups you pick will be practiced.',
     h('div', { class: 'chip-row' },
