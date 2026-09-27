@@ -1,0 +1,65 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover, user-scalable=no" />
+    <meta name="theme-color" content="#ffcf4a" />
+    <link rel="manifest" href="/manifest.webmanifest" />
+    <link rel="icon" type="image/png" href="/icons/icon-192.png" />
+    <title>Microphone Test</title>
+  </head>
+  <body>
+    <!--
+      Step 1 test screen: checks that listening (speech recognition), talking
+      (speech synthesis) and sound effects all work on the tablet.
+    -->
+    <div class="mic-test">
+      <header class="top">
+        <a class="big-button" href="./">⬅ Back</a>
+        <h1>Microphone test</h1>
+      </header>
+
+      <section class="card checks">
+        <h2>Checklist</h2>
+        <ul id="checks"></ul>
+      </section>
+
+      <section class="card talk">
+        <button id="mic" class="mic" type="button" aria-label="Tap to talk">
+          <svg viewBox="0 0 24 24" aria-hidden="true">
+            <rect x="8" y="2" width="8" height="13" rx="4" />
+            <path d="M5 11a7 7 0 0 0 14 0" fill="none" stroke-width="2.2" stroke-linecap="round" />
+            <path d="M12 18v3M8.5 21h7" fill="none" stroke-width="2.2" stroke-linecap="round" />
+          </svg>
+          <span class="bars" aria-hidden="true"><i></i><i></i><i></i><i></i><i></i></span>
+        </button>
+        <p id="mic-label" class="mic-label">Tap to talk</p>
+        <p id="heard" class="heard">Try saying: “Okay class, time to take attendance!”</p>
+        <p id="message" class="message" hidden></p>
+        <ol id="alternatives" class="alternatives"></ol>
+        <button id="say-back" class="big-button" type="button" disabled>🔁 Say it back</button>
+      </section>
+
+      <section class="card voices">
+        <h2>Student voices</h2>
+        <div class="voice-buttons">
+          <button class="big-button" data-voice="kid" type="button">🧒 Kid</button>
+          <button class="big-button" data-voice="plush" type="button">🧸 Stuffed animal</button>
+          <button class="big-button" data-voice="truck" type="button">🛻 Monster truck</button>
+          <button class="big-button" data-voice="tank" type="button">🟢 Tank</button>
+          <button class="big-button" data-voice="bell" type="button">🔔 Bell</button>
+        </div>
+        <details>
+          <summary>English voices on this device (<span id="voice-count">…</span>)</summary>
+          <ul id="voice-list" class="voice-list"></ul>
+        </details>
+      </section>
+
+      <section class="card log">
+        <h2>What happened</h2>
+        <ol id="log"></ol>
+      </section>
+    </div>
+    <script type="module" src="/src/mic-test/mic-test.js"></script>
+  </body>
+</html>

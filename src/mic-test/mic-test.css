@@ -1,0 +1,96 @@
+.mic-test {
+  display: grid;
+  grid-template-columns: minmax(260px, 1fr) minmax(320px, 1.4fr) minmax(260px, 1fr);
+  grid-template-areas:
+    'top    top  top'
+    'checks talk voices'
+    'log    talk voices';
+  gap: 16px;
+  padding: 16px max(16px, env(safe-area-inset-right)) 16px max(16px, env(safe-area-inset-left));
+  min-height: 100%;
+  align-items: start;
+}
+@media (max-width: 900px) {
+  .mic-test {
+    grid-template-columns: 1fr;
+    grid-template-areas: 'top' 'talk' 'checks' 'voices' 'log';
+  }
+}
+
+.top { grid-area: top; display: flex; align-items: center; gap: 20px; }
+.top h1 { margin: 0; font-size: 2rem; }
+.checks { grid-area: checks; }
+.talk { grid-area: talk; text-align: center; }
+.voices { grid-area: voices; }
+.log { grid-area: log; }
+.card h2 { font-size: 1.2rem; }
+
+/* Checklist */
+#checks { list-style: none; margin: 0; padding: 0; }
+#checks li { display: grid; grid-template-columns: 1.6em 1fr; gap: 4px 8px; padding: 6px 0; }
+#checks .detail { grid-column: 2; font-size: 0.8rem; color: var(--ink-soft); }
+
+/* The big microphone button */
+.mic {
+  position: relative;
+  width: 160px;
+  height: 160px;
+  margin: 8px auto 0;
+  display: grid;
+  place-items: center;
+  border: 0;
+  border-radius: 50%;
+  background: radial-gradient(circle at 35% 30%, #ff8fb1, var(--berry) 55%, var(--berry-dark));
+  box-shadow: 0 8px 0 var(--berry-dark), 0 0 0 0 rgba(255, 93, 143, 0.5);
+  cursor: pointer;
+  transition: transform 80ms ease;
+}
+.mic:active { transform: translateY(4px); }
+.mic svg { width: 76px; height: 76px; fill: #fff; stroke: #fff; }
+.mic .bars { position: absolute; bottom: 22px; display: none; gap: 5px; height: 22px; align-items: end; }
+.mic .bars i { display: block; width: 7px; height: 30%; border-radius: 4px; background: #fff; }
+
+.mic.listening {
+  animation: glow 1.2s ease-in-out infinite;
+  background: radial-gradient(circle at 35% 30%, #9ff0b0, var(--grass) 55%, #2f9a45);
+  box-shadow: 0 8px 0 #2f9a45;
+}
+.mic.listening svg { transform: translateY(-12px) scale(0.8); }
+.mic.listening .bars { display: flex; }
+.mic.listening .bars i { animation: bar 0.9s ease-in-out infinite; }
+.mic.hearing .bars i { animation-duration: 0.35s; }
+.mic .bars i:nth-child(2) { animation-delay: -0.2s; }
+.mic .bars i:nth-child(3) { animation-delay: -0.4s; }
+.mic .bars i:nth-child(4) { animation-delay: -0.6s; }
+.mic .bars i:nth-child(5) { animation-delay: -0.8s; }
+
+@keyframes glow {
+  0%, 100% { filter: drop-shadow(0 0 0 rgba(92, 194, 107, 0.9)); }
+  50% { filter: drop-shadow(0 0 22px rgba(92, 194, 107, 0.9)); }
+}
+@keyframes bar {
+  0%, 100% { height: 25%; }
+  50% { height: 100%; }
+}
+
+.mic-label { font-weight: 800; font-size: 1.2rem; margin: 14px 0 6px; }
+.heard { font-size: 1.6rem; font-weight: 800; min-height: 2.8em; margin: 0 0 8px; }
+.heard.interim { color: var(--ink-soft); font-style: italic; font-weight: 600; }
+.heard.hint { color: var(--ink-soft); font-size: 1.1rem; font-weight: 600; }
+.message {
+  background: #fff4d6;
+  border: 3px solid var(--sun-dark);
+  border-radius: 16px;
+  padding: 10px 14px;
+  font-weight: 700;
+}
+.alternatives { text-align: left; font-size: 0.9rem; color: var(--ink-soft); margin: 0 0 12px; }
+
+/* Voices */
+.voice-buttons { display: flex; flex-wrap: wrap; gap: 12px; margin-bottom: 14px; }
+.voice-buttons .big-button { font-size: 1rem; }
+details summary { padding: 10px 0; cursor: pointer; font-weight: 700; }
+.voice-list { font-size: 0.8rem; color: var(--ink-soft); max-height: 200px; overflow: auto; }
+
+/* Event log */
+#log { font-size: 0.8rem; font-family: ui-monospace, monospace; color: var(--ink-soft); max-height: 260px; overflow: auto; padding-left: 1.6em; margin: 0; user-select: text; }

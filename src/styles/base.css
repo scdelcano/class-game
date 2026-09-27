@@ -1,0 +1,68 @@
+/* Shared look for every screen: big, bright, rounded, touch-first. */
+:root {
+  --sun: #ffcf4a;
+  --sun-dark: #f2a900;
+  --sky: #7fd3ff;
+  --grass: #5cc26b;
+  --berry: #ff5d8f;
+  --berry-dark: #e0336c;
+  --ink: #3a2e5c;
+  --ink-soft: #6b5f8a;
+  --paper: #fffaf0;
+  --card: #ffffff;
+  --good: #2e9e5b;
+  --warn: #e08a00;
+  --bad: #d6364a;
+  --radius: 22px;
+  --shadow: 0 6px 0 rgba(58, 46, 92, 0.18);
+  --font: 'Nunito', 'Baloo 2', ui-rounded, 'Segoe UI Rounded', 'Roboto', system-ui, sans-serif;
+  --tap: 56px; /* smallest thing a finger should have to hit */
+}
+
+* { box-sizing: border-box; }
+[hidden] { display: none !important; }
+
+html, body {
+  margin: 0;
+  height: 100%;
+  background: var(--sun);
+  color: var(--ink);
+  font-family: var(--font);
+  font-size: 20px;
+  line-height: 1.35;
+  overscroll-behavior: none;
+  -webkit-tap-highlight-color: transparent;
+  -webkit-user-select: none;
+  user-select: none;
+  touch-action: manipulation;
+}
+
+h1, h2, h3 { margin: 0 0 0.4em; line-height: 1.15; }
+
+.big-button {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5em;
+  min-height: var(--tap);
+  padding: 0.5em 1.1em;
+  border: 0;
+  border-radius: var(--radius);
+  background: var(--card);
+  color: var(--ink);
+  font: 800 1.1rem var(--font);
+  text-decoration: none;
+  box-shadow: var(--shadow);
+  cursor: pointer;
+  transition: transform 80ms ease, box-shadow 80ms ease;
+}
+.big-button:active { transform: translateY(4px); box-shadow: 0 2px 0 rgba(58, 46, 92, 0.18); }
+.big-button:disabled { opacity: 0.45; pointer-events: none; }
+.big-button.primary { background: var(--berry); color: #fff; }
+
+.card {
+  background: var(--card);
+  border-radius: var(--radius);
+  box-shadow: var(--shadow);
+  padding: 18px 20px;
+}

@@ -1,0 +1,49 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover, user-scalable=no" />
+    <meta name="theme-color" content="#ffcf4a" />
+    <link rel="manifest" href="/manifest.webmanifest" />
+    <link rel="icon" type="image/png" href="/icons/icon-192.png" />
+    <title>My Classroom</title>
+  </head>
+  <body>
+    <!-- Layers, bottom to top: 3D view, speech bubbles, buttons, screens/dialogs -->
+    <canvas id="scene"></canvas>
+    <div id="bubbles" class="bubbles"></div>
+
+    <div id="hud" class="hud">
+      <button id="grownups-button" class="big-button hud-grownups" type="button" title="Grown-ups: press and hold">⚙️ Grown-ups</button>
+      <div class="hud-top">
+        <span id="class-state" class="state-pill" data-state="free">🎈 Playtime</span>
+        <button id="bell-button" class="big-button bell-button" type="button">
+          <span class="icon" aria-hidden="true">🔔</span> <span id="bell-label">Start class</span>
+        </button>
+      </div>
+      <button id="my-class" class="big-button primary hud-class" type="button">
+        <span class="icon" aria-hidden="true">🎒</span> My class
+      </button>
+      <div class="hud-bottom-right">
+        <button id="lesson-button" class="big-button lesson-button" type="button">
+          <span class="icon" aria-hidden="true">📚</span> Lessons
+        </button>
+        <button id="attendance-button" class="big-button primary attendance-button" type="button">
+          <span class="icon" aria-hidden="true">📋</span> Attendance
+        </button>
+        <button id="reset-view" class="big-button" type="button">
+          <span class="icon" aria-hidden="true">🏠</span> Whole room
+        </button>
+      </div>
+    </div>
+
+    <div id="ui" class="ui"></div>
+    <div id="fps" class="fps" hidden></div>
+
+    <div class="rotate-overlay">
+      <div><span class="icon" aria-hidden="true">🔄</span>Turn the tablet sideways!</div>
+    </div>
+
+    <script type="module" src="/src/main.js"></script>
+  </body>
+</html>
