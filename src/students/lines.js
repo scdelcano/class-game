@@ -95,9 +95,9 @@ export const PROUD_LINES = ['Yay!', 'I knew it!', 'Woo-hoo!', 'Thank you!', 'Yes
 export const FIX_ASK_LINES = ['Oops! What is it, teacher?', 'Oh no! What is it?', 'Hmm, can you help me?'];
 export const THANKS_LINES = ['Oh! {n}! Thank you!', '{n}! Now I get it!', 'Ohh, {n}! Thanks, teacher!'];
 export const CLASS_WOW_LINES = ['Ooh!', 'Wow!', 'Teacher is so smart!', 'Cool!'];
-/** She said "not right" but the student was right. */
+/** The teacher said "not right" but the student was right. */
 export const DISAGREE_LINES = ["But {q} is {n}! Let's count!", 'Hmm, I think {q} really is {n}!'];
-/** She said "right" but the student was wrong. */
+/** The teacher said "right" but the student was wrong. */
 export const CATCH_LINES = ["Wait! I think {q} is {n}!", "Hmm, is that right? I think it's {n}!"];
 
 /** Fill {n} and {q} in a lesson line. */

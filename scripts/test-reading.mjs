@@ -1,5 +1,5 @@
 // Checks the reading engine: word packs, word chunks, believable mistakes,
-// and checking her reading from speech recognizer guesses. Run with: npm test
+// and checking the player's reading from speech recognizer guesses. Run with: npm test
 import { readingPack, READING_GRADES, chunks, misread, misspell, cleanWordList } from '../src/learning/reading-words.js';
 import { checkReading, sameSpelling } from '../src/learning/reading-check.js';
 import { createMastery } from '../src/learning/mastery.js';
@@ -43,7 +43,7 @@ check(okRead, 'a misread is never the real word');
 check(okSpell, 'a misspelling is never the real spelling');
 console.log('     e.g.', ['sitting', 'cries', 'helpful', 'because', 'friend', 'action'].map((w) => `${w}→${misspell(w)}`).join(' '));
 
-console.log('— checking her reading');
+console.log('— checking the player\'s reading');
 const word = (text) => ({ kind: 'word', text });
 const alts = (...t) => t.map((text) => ({ text }));
 const readCases = [
@@ -63,7 +63,7 @@ console.log('— adapting');
 const data = {};
 const m = createMastery(data, readingPack(3), () => ({ chosen: 'auto', requireOk: true, pinned: [] }));
 check(new Set(Array.from({ length: 30 }, () => m.pick().family)).size === 1, 'starts with one word group');
-check(Array.from({ length: 30 }, () => m.pick()).every((f) => f.mode === 'read'), 'spelling waits until she can read the word');
+check(Array.from({ length: 30 }, () => m.pick()).every((f) => f.mode === 'read'), 'spelling waits until the player can read the word');
 for (let i = 0; i < 200; i++) { const f = m.pick(); m.record(f.key, true, { ms: 2000 }); }
 check(Object.keys(data.stats).some((k) => k.startsWith('s:')), 'spelling appears once words are read well');
 const dataW = {};

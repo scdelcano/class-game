@@ -42,7 +42,7 @@ registerServiceWorker();
 // ------------------------------------------------------------------ 3D room
 const canvas = document.getElementById('scene');
 const scene = new THREE.Scene();
-const camera = new THREE.OrthographicCamera();
+const camera = new THREE.PerspectiveCamera(32, 1, 0.5, 200);
 const view = createRenderer(canvas, scene);
 const picker = new Picker(camera, canvas);
 

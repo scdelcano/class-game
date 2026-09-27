@@ -12,8 +12,8 @@ export const DEFAULT_SETTINGS = {
   division: true, // include ÷ (grades 3-4) or − (grades 1-2) once the partner fact is known
   // reading
   readingGroups: 'auto', // 'auto' or a list of word-group ids
-  spelling: true, // include spelling once she can read a word
-  weekWords: [], // her school's weekly words (always practiced first)
+  spelling: true, // include spelling once the player can read a word
+  weekWords: [], // the player's school's weekly words (always practiced first)
 };
 
 export const MISTAKE_RATES = { few: 0.2, some: 0.35, lots: 0.5 };

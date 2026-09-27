@@ -154,7 +154,7 @@ export function createStudentEditor({ view, roster, portraits, onClose }) {
       return;
     }
     draft.name = name;
-    draft.example = false; // it's hers now
+    draft.example = false; // it belongs to the player now
     roster.put(draft);
     sfx.chime();
     showToast(isNew ? `${name} joined the class!` : `${name} is saved!`, { icon: '🎉' });

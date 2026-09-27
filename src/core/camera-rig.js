@@ -1,19 +1,19 @@
 import * as THREE from 'three';
 
-const VIEW_HEIGHT = 14; // world units visible top-to-bottom at zoom 1
+const VIEW_HEIGHT = 14; // world units visible top-to-bottom (at the look-at point) at zoom 1
 const DRAG_START_PX = 8; // finger must move this far before a tap becomes a drag
 const TAP_MAX_MS = 800;
 const MAX_ZOOM_IN = 3.2; // relative to "whole room"
 
 /**
- * Isometric orthographic camera with touch controls:
+ * Perspective camera looking into the room from a fixed corner angle, with touch controls:
  *   one finger drag = pan, two finger pinch = zoom (and pan), mouse wheel = zoom,
  *   a quick touch without moving = tap (reported through onTap).
  * Panning is limited so the room can never be lost off-screen.
  */
 export class CameraRig {
   /**
-   * @param {THREE.OrthographicCamera} camera
+   * @param {THREE.PerspectiveCamera} camera
    * @param {HTMLElement} el element receiving pointer events (the canvas)
    * @param {THREE.Box3} bounds what "whole room" should frame
    */
@@ -42,6 +42,8 @@ export class CameraRig {
     this.goalZoom = 0;
     this.fitZoom = 1;
     this.extent = new THREE.Vector2(1, 1);
+    /** @type {THREE.Vector3[]} framed box corners as (right, up, toward-camera) offsets */
+    this.corners = [];
     this.width = 1;
     this.height = 1;
     // Part of the screen width the room should use (1 = all). Less than 1
@@ -62,13 +64,7 @@ export class CameraRig {
   resize(width, height) {
     this.width = Math.max(1, width);
     this.height = Math.max(1, height);
-    const c = this.camera;
-    c.left = (-VIEW_HEIGHT * this.aspect) / 2;
-    c.right = (VIEW_HEIGHT * this.aspect) / 2;
-    c.top = VIEW_HEIGHT / 2;
-    c.bottom = -VIEW_HEIGHT / 2;
-    c.near = 0.1;
-    c.far = 200;
+    this.camera.aspect = this.aspect;
 
     this.measureFrame();
     const relative = this.zoom ? this.goalZoom / this.fitZoom : 1;
@@ -87,17 +83,40 @@ export class CameraRig {
     let ex = 0;
     let ey = 0;
     const v = new THREE.Vector3();
+    this.corners = [];
     for (const x of [min.x, max.x]) for (const y of [min.y, max.y]) for (const z of [min.z, max.z]) {
       v.set(x, y, z).sub(this.home);
-      ex = Math.max(ex, Math.abs(v.dot(this.right)));
-      ey = Math.max(ey, Math.abs(v.dot(this.up)));
+      const c = new THREE.Vector3(v.dot(this.right), v.dot(this.up), v.dot(this.dir));
+      this.corners.push(c);
+      ex = Math.max(ex, Math.abs(c.x));
+      ey = Math.max(ey, Math.abs(c.y));
     }
     this.extent.set(ex, ey);
   }
 
+  /** Camera distance from the look-at point that shows VIEW_HEIGHT / zoom world units top-to-bottom. */
+  distanceFor(zoom) {
+    return VIEW_HEIGHT / (2 * Math.tan(THREE.MathUtils.degToRad(this.camera.fov / 2)) * zoom);
+  }
+
   /** Zoom that fits the framed box into `area` (fraction of the screen width). */
   fitZoomFor(area) {
-    return Math.min((VIEW_HEIGHT * this.aspect * area) / 2 / this.extent.x, VIEW_HEIGHT / 2 / this.extent.y) * 0.94;
+    const fit = (ex, ey) => Math.min((VIEW_HEIGHT * this.aspect * area) / 2 / ex, VIEW_HEIGHT / 2 / ey) * 0.94;
+    // Corners nearer the camera look bigger, and how much bigger depends on
+    // the distance, which depends on the zoom: a few rounds settle it.
+    let zoom = fit(this.extent.x, this.extent.y);
+    for (let i = 0; i < 4; i++) {
+      const dist = this.distanceFor(zoom);
+      let ex = 0;
+      let ey = 0;
+      for (const c of this.corners) {
+        const grow = dist / Math.max(dist * 0.2, dist - c.z);
+        ex = Math.max(ex, Math.abs(c.x) * grow);
+        ey = Math.max(ey, Math.abs(c.y) * grow);
+      }
+      zoom = fit(ex, ey);
+    }
+    return zoom;
   }
 
   /** Smoothly go back to seeing the whole room. */
@@ -139,9 +158,8 @@ export class CameraRig {
     const target = this.home.clone()
       .addScaledVector(this.right, this.pan.x)
       .addScaledVector(this.up, this.pan.y);
-    this.camera.position.copy(target).addScaledVector(this.dir, 60);
+    this.camera.position.copy(target).addScaledVector(this.dir, this.distanceFor(this.zoom));
     if (projectionChanged) {
-      this.camera.zoom = this.zoom;
       if (this.area < 0.999) {
         // slide the picture left so the room is centred in the uncovered part
         this.camera.setViewOffset(this.width, this.height, (this.width * (1 - this.area)) / 2, 0, this.width, this.height);
