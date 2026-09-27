@@ -43,10 +43,10 @@ export function createLearning(roster) {
     events.emit('change');
   }
 
-  const today = () => {
-    const d = new Date();
-    return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;
-  };
+  const dayKey = (d) => `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;
+  const today = () => dayKey(new Date());
+  /** Practice log for one day (lessons were added to it later, so older days have none). */
+  const logDay = () => (data.history.days[today()] ??= { problems: 0, right: 0, seconds: 0, lessons: 0 });
 
   return {
     on: events.on,
@@ -101,7 +101,7 @@ export function createLearning(roster) {
 
     /** One problem done (for the practice history). */
     logProblem(correct, ms) {
-      const day = (data.history.days[today()] ??= { problems: 0, right: 0, seconds: 0 });
+      const day = logDay();
       day.problems += 1;
       if (correct) day.right += 1;
       day.seconds += Math.min(60, Math.round(ms / 1000)); // cap long pauses
@@ -109,6 +109,8 @@ export function createLearning(roster) {
 
     lessonDone() {
       data.history.lessons += 1;
+      const day = logDay();
+      day.lessons = (day.lessons ?? 0) + 1;
       save();
     },
 
@@ -122,24 +124,34 @@ export function createLearning(roster) {
       return data.stars[studentId] ?? 0;
     },
 
-    /** Totals for the last `days` days. */
+    /** Totals for the last `days` days (today included). */
     recent(days = 7) {
-      let problems = 0;
-      let right = 0;
-      let seconds = 0;
       const now = new Date();
+      const entries = [];
       for (let i = 0; i < days; i++) {
         const d = new Date(now);
         d.setDate(now.getDate() - i);
-        const key = `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;
-        const e = data.history.days[key];
-        if (e) {
-          problems += e.problems;
-          right += e.right;
-          seconds += e.seconds;
-        }
+        const e = data.history.days[dayKey(d)];
+        if (e) entries.push(e);
       }
-      return { problems, right, seconds };
+      return totals(entries);
+    },
+
+    /**
+     * Totals since the start (or the last progress reset), plus the number of
+     * days practiced, the first day, and gold stars given to students.
+     * Lessons come from the all-time counter, which is older than the daily log.
+     */
+    allTime() {
+      const keys = Object.keys(data.history.days).sort();
+      const sum = totals(keys.map((k) => data.history.days[k]));
+      return {
+        ...sum,
+        lessons: data.history.lessons,
+        days: keys.length,
+        since: keys[0] ?? null,
+        stars: Object.values(data.stars).reduce((a, b) => a + b, 0),
+      };
     },
 
     resetProgress() {
@@ -152,4 +164,15 @@ export function createLearning(roster) {
       save();
     },
   };
+}
+
+function totals(entries) {
+  const sum = { problems: 0, right: 0, seconds: 0, lessons: 0 };
+  for (const e of entries) {
+    sum.problems += e.problems ?? 0;
+    sum.right += e.right ?? 0;
+    sum.seconds += e.seconds ?? 0;
+    sum.lessons += e.lessons ?? 0;
+  }
+  return sum;
 }

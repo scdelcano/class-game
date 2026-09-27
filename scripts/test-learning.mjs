@@ -1,8 +1,9 @@
 // Checks the math learning engine: fact packs, spoken numbers, verdicts,
-// and that practice adapts (unlocks, spacing). Run with: npm test
+// that practice adapts (unlocks, spacing), and the practice stats. Run with: npm test
 import { mathPack, GRADES, present, wrongAnswer } from '../src/learning/math-facts.js';
 import { numbersIn, spokenAnswer, verdictIn } from '../src/learning/numbers.js';
 import { createMastery } from '../src/learning/mastery.js';
+import { createLearning } from '../src/learning/store.js';
 
 let failures = 0;
 const check = (ok, label) => {
@@ -66,6 +67,27 @@ const soon = Array.from({ length: 4 }, () => { const f = m2.pick(); m2.record(f.
 check(soon.includes(target.key), `missed fact ${target.key} comes back within 4 problems`);
 check(Array.from({ length: 40 }, () => m2.pick()).every((f) => f.family === 7), 'grown-up table choice (×7 only) is respected');
 check(m2.level(target.key) === 'learning' || m2.level(target.key) === 'almost', `levels work (${m2.level(target.key)})`);
+
+console.log('— practice stats');
+{
+  const stats = { settings: {} };
+  const fake = { getSetting: (k) => stats.settings[k] ?? null, setSetting: (k, v) => { stats.settings[k] = v; } };
+  const old = new Date();
+  old.setDate(old.getDate() - 10);
+  const oldKey = `${old.getFullYear()}-${String(old.getMonth() + 1).padStart(2, '0')}-${String(old.getDate()).padStart(2, '0')}`;
+  // an older save: 5 lessons in the all-time counter, a day log without lessons
+  stats.settings.learning = { history: { lessons: 5, teacherStars: 0, days: { [oldKey]: { problems: 10, right: 6, seconds: 120 } } }, stars: { a: 2, b: 1 } };
+  const learning = createLearning(fake);
+  check(learning.recent(7).lessons === 0 && learning.recent(7).problems === 0, 'a fresh week starts at zero');
+  learning.logProblem(true, 5000);
+  learning.logProblem(false, 5000);
+  learning.lessonDone();
+  const week = learning.recent(7);
+  check(week.lessons === 1 && week.problems === 2 && week.right === 1, 'this week counts only this week\'s lessons and problems');
+  const all = learning.allTime();
+  check(all.lessons === 6 && all.problems === 12 && all.right === 7, 'all time adds up every day and every lesson');
+  check(all.days === 2 && all.since === oldKey && all.stars === 3, 'all time knows the days practiced, the first day and stars given');
+}
 
 console.log(failures ? `\n${failures} failed` : '\nall passed');
 process.exit(failures ? 1 : 0);

@@ -46,6 +46,12 @@ html, body {
   font-size: 0.85rem;
   opacity: 0.85;
 }
+/* who's teaching (only with more than one child), under Grown-ups */
+.hud-switch {
+  left: max(16px, env(safe-area-inset-left));
+  top: calc(max(16px, env(safe-area-inset-top)) + 72px);
+  font-size: 0.9rem;
+}
 .hud .icon { font-size: 1.4em; line-height: 1; }
 
 .fps {

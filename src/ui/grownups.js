@@ -5,6 +5,10 @@ import { showToast } from './toast.js';
 import { GRADES } from '../learning/math-facts.js';
 import { LEVELS } from '../learning/mastery.js';
 import { CUSTOM_GROUP } from '../learning/reading-words.js';
+import { profileForm, ordinal } from './profile-form.js';
+import { createLearning } from '../learning/store.js';
+import { createRoster } from '../students/roster.js';
+import { saveKeyFor } from '../core/storage.js';
 
 const HOLD_MS = 2000;
 
@@ -43,23 +47,42 @@ export function holdToOpen(button, onOpen) {
  * To add a tab (e.g. a new subject), add an entry to `tabs` below: an id,
  * an icon, a label, and a `sections()` function that returns the cards to
  * show. Everything else (tab bar, switching, re-rendering) is shared.
+ *
+ * The "Viewing" chips at the top pick which player the page is about, and
+ * "+ Add player" adds one. It opens on the player who's playing; looking at
+ * someone else doesn't change who's playing. Every card below, including
+ * Change, Reset and Remove in Tools, is about the player being viewed.
  */
-export function createGrownups({ learning, onClose }) {
+export function createGrownups({ learning: playingLearning, profile: playing, profiles, onProfilesChange = () => {}, onClose }) {
+  let viewId = playing.id;
+  let profile = playing; // the player being looked at
+  let learning = playingLearning; // their learning data
+  const others = new Map(); // other players' learning, loaded from their saves while Grown-ups is open
+
+  function learningFor(id) {
+    if (id === playing.id) return playingLearning;
+    if (!others.has(id)) others.set(id, createLearning(createRoster({ saveKey: saveKeyFor(id) })));
+    return others.get(id);
+  }
+
+  const playerBar = h('div', { class: 'player-bar' });
   const tabBar = h('nav', { class: 'tabs grownups-tabs', role: 'tablist' });
   const body = h('div', { class: 'grownups-body', role: 'tabpanel' });
+  const whose = h('span', { class: 'roster-count' });
   const el = h('div', { class: 'screen grownups', hidden: true },
     h('header', { class: 'screen-header' },
       h('h1', {}, h('span', { 'aria-hidden': 'true' }, '⚙️ '), 'Grown-ups'),
-      h('span', { class: 'roster-count' }, 'Everything stays on this tablet.'),
+      whose,
       h('button', { class: 'big-button primary', type: 'button', onclick: close }, '✓ Done'),
     ),
+    playerBar,
     tabBar,
     body,
   );
   uiRoot().append(el);
 
   const tabs = [
-    { id: 'general', icon: '🏫', label: 'General', sections: () => [gradeSection(), weekSection(), mistakesSection(), toolsSection()] },
+    { id: 'general', icon: '🏫', label: 'General', sections: () => [gradeSection(), mistakesSection(), weekSection(), allTimeSection(), toolsSection()] },
     { id: 'math', icon: '🔢', label: 'Math', sections: () => [mathFactsSection(), mathProgress()] },
     { id: 'reading', icon: '📖', label: 'Reading', sections: () => [weekWordsSection(), readingSection(), readingProgress()] },
   ];
@@ -74,6 +97,25 @@ export function createGrownups({ learning, onClose }) {
   const section = (title, note, ...content) => h('section', { class: 'card gu-section' }, h('h2', {}, title), note ? h('p', { class: 'gu-note' }, note) : null, ...content);
 
   function render() {
+    if (!profiles.get(viewId)) viewId = playing.id; // they were removed
+    profile = profiles.get(viewId) ?? playing; // the name or emoji may have changed
+    learning = learningFor(viewId);
+    const other = viewId !== playing.id;
+    el.classList.toggle('viewing-other', other);
+    whose.textContent = `Settings for ${profile.emoji} ${profile.name}${other ? ' (not playing now)' : ''} · everything stays on this tablet.`;
+    playerBar.replaceChildren(
+      h('span', { class: 'player-bar-label' }, 'Viewing:'),
+      ...profiles.list.map((p) => chip(
+        h('span', {}, `${p.emoji} ${p.name}`, p.id === playing.id ? h('small', {}, ' · playing') : null),
+        p.id === viewId,
+        () => {
+          viewId = p.id;
+          render();
+          el.scrollTop = 0;
+        },
+      )),
+      chip('+ Add player', false, addPlayer, 'add-player'),
+    );
     const tab = tabs.find((t) => t.id === activeTab) ?? tabs[0];
     tabBar.replaceChildren(...tabs.map((t) => h('button', {
       class: `tab${t === tab ? ' active' : ''}`,
@@ -103,16 +145,16 @@ export function createGrownups({ learning, onClose }) {
   }
 
   function weekSection() {
-    const recent = learning.recent(7);
-    const minutes = Math.round(recent.seconds / 60);
-    const accuracy = recent.problems ? Math.round((recent.right / recent.problems) * 100) : null;
-    return section('This week', `${ordinal(learning.settings.grade)} grade · all subjects, last 7 days`,
-      h('div', { class: 'tiles' },
-        tile(String(learning.history.lessons), 'lessons'),
-        tile(String(recent.problems), 'problems'),
-        tile(accuracy === null ? '–' : `${accuracy}%`, 'right'),
-        tile(`${minutes} min`, 'practice'),
-      ),
+    return section('This week', 'All subjects, last 7 days (today included).', statTiles(learning.recent(7)));
+  }
+
+  function allTimeSection() {
+    const all = learning.allTime();
+    return section('All time', 'All subjects and grades, since the start or the last progress reset.',
+      statTiles(all),
+      h('p', { class: 'gu-detail' }, all.days
+        ? `Practiced on ${all.days} ${all.days === 1 ? 'day' : 'days'} since ${shortDate(all.since)} · ${all.stars} gold ${all.stars === 1 ? 'star' : 'stars'} given to students`
+        : 'No practice yet.'),
     );
   }
 
@@ -127,22 +169,63 @@ export function createGrownups({ learning, onClose }) {
     );
   }
 
+  async function addPlayer() {
+    const added = await profileForm({ profiles });
+    if (!added) return;
+    showToast(`${added.name} was added!`, { icon: added.emoji });
+    viewId = added.id; // show the new player, ready for their weekly words
+    onProfilesChange();
+    render();
+    el.scrollTop = 0;
+  }
+
   function toolsSection() {
+    const isPlaying = profile.id === playing.id;
+    const canRemove = !isPlaying && profiles.count > 1;
     return section('Tools', null,
       h('div', { class: 'chip-row' },
         h('a', { class: 'big-button', href: './mic-test.html' }, '🎤 Microphone test'),
         h('button', {
+          class: 'big-button',
+          type: 'button',
+          onclick: async () => {
+            sfx.pop();
+            if (!(await profileForm({ profiles, profile }))) return;
+            onProfilesChange();
+            render();
+          },
+        }, `✏️ Change ${profile.name}\u2019s name or picture`),
+        h('button', {
           class: 'big-button danger',
           type: 'button',
           onclick: async () => {
-            const yes = await confirmDialog({ text: 'Erase all learning progress and stars?', yes: 'Erase', no: 'Keep', icon: '⚠️' });
+            const yes = await confirmDialog({ text: `Erase ${profile.name}\u2019s learning progress and stars?`, yes: 'Erase', no: 'Keep', icon: '⚠️' });
             if (!yes) return;
             learning.resetProgress();
             showToast('Learning progress erased.', { icon: '🧹' });
             render();
           },
-        }, '🧹 Reset learning progress'),
+        }, `🧹 Reset ${profile.name}\u2019s learning progress`),
+        h('button', {
+          class: 'big-button danger',
+          type: 'button',
+          disabled: !canRemove,
+          onclick: async () => {
+            const yes = await confirmDialog({ text: `Remove ${profile.name}? This erases their class, stars and progress.`, yes: 'Remove', no: 'Keep', icon: '⚠️' });
+            if (!yes) return;
+            const name = profile.name;
+            profiles.remove(profile.id);
+            showToast(`${name} was removed.`, { icon: '🧹' });
+            viewId = playing.id;
+            onProfilesChange();
+            render();
+            el.scrollTop = 0;
+          },
+        }, `🗑️ Remove ${profile.name}`),
       ),
+      canRemove ? null : h('p', { class: 'gu-detail' }, isPlaying
+        ? `${profile.name} is playing now. To remove ${profile.name}, switch to another player first.`
+        : `${profile.name} is the only player, so they can\u2019t be removed.`),
     );
   }
 
@@ -284,6 +367,8 @@ export function createGrownups({ learning, onClose }) {
   }
 
   function open() {
+    others.clear(); // read fresh from the saves
+    viewId = playing.id;
     render();
     el.hidden = false;
   }
@@ -297,8 +382,29 @@ export function createGrownups({ learning, onClose }) {
   return { open };
 }
 
-function ordinal(n) {
-  return `${n}${{ 1: 'st', 2: 'nd', 3: 'rd' }[n] ?? 'th'}`;
+/** Lessons, problems, % right and practice time. */
+function statTiles({ lessons, problems, right, seconds }) {
+  return h('div', { class: 'tiles' },
+    tile(String(lessons), lessons === 1 ? 'lesson' : 'lessons'),
+    tile(String(problems), problems === 1 ? 'problem' : 'problems'),
+    tile(problems ? `${Math.round((right / problems) * 100)}%` : '–', 'right'),
+    tile(practiceTime(seconds), 'practice'),
+  );
+}
+
+/** "25 min" under an hour, then "1.5 h". */
+function practiceTime(seconds) {
+  const minutes = Math.round(seconds / 60);
+  return minutes < 60 ? `${minutes} min` : `${Math.round(minutes / 6) / 10} h`;
+}
+
+/** '2026-09-20' -> 'Sep 20' (with the year if it isn't this year). */
+function shortDate(key) {
+  const [y, m, d] = key.split('-').map(Number);
+  const date = new Date(y, m - 1, d);
+  const opts = { month: 'short', day: 'numeric' };
+  if (y !== new Date().getFullYear()) opts.year = 'numeric';
+  return date.toLocaleDateString(undefined, opts);
 }
 
 function tile(big, small) {

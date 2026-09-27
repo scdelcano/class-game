@@ -52,7 +52,8 @@ forces the graphics level (default is automatic).
 index.html, mic-test.html   page entry points
 public/                     copied as-is: manifest, service worker, icons
 scripts/make-icons.mjs      procedural icon generator
-src/main.js                 game entry: scene, camera, input, main loop
+src/main.js                 entry: who's playing? (profile picker), then starts the game
+src/game/app.js             one player's game: scene, camera, input, screens, main loop
 src/pwa.js                  service worker registration, installed-app detection
 src/core/                   renderer (auto quality), loop, camera-rig (pan/pinch/tap),
                             picker (what did I tap?), anim (wiggle/squash/hop), random, emitter
@@ -88,10 +89,12 @@ src/ui/clipboard.js         the attendance clipboard
 src/voice/commands.js       spoken commands (add phrases here), fuzzy.js (forgiving matching),
                             name-match.js (forgiving names: spelling + sound-alike),
                             voice-control.js (mic -> names/commands), speech-input.js, speech-output.js
-src/core/storage.js         localStorage save with a version number for future upgrades
+src/core/storage.js         localStorage saves (one per player) with a version number for future upgrades
+src/core/profiles.js        the players on this tablet (add, change, remove)
 src/voice/student-voice.js  each student's own voice (type preset + tone + device voice)
 src/ui/                     hud, class-screen (My class), student-editor (make a student),
-                            keyboard, dialog, toast, bubbles (speech bubbles), dom helper
+                            keyboard, dialog, toast, bubbles (speech bubbles), dom helper,
+                            profile-picker (Who's teaching today?), profile-form (add/change a player)
 src/audio/sfx.js            Web Audio sound effects (bell, honk, clank, squeak…)
 src/styles/                 shared look (big touch targets, bright colors)
 src/mic-test/               step 1 test screen
@@ -116,6 +119,16 @@ and can be spelled right away.
 Standards: reading RF.1.3, RF.2.3, RF.3.3 (a-d), RF.3.4 (sentences), RF.4.3; spelling L.3.2e/f.
 Math: grade 1 1.OA.C.6, grade 2 2.OA.B.2, grade 3 3.OA.C.7 (dot arrays: 3.OA.A.1),
 grade 4 is a times-table review to 12×12.
+
+## More than one player
+
+Each player has their own classroom: students, grade, progress, stars, attendance and weekly words.
+In ⚙️ Grown-ups, the "Viewing" chips at the top pick which player the page is about, without
+changing who's playing, and "+ Add player" adds one (name, picture, grade). Tools has Change, Reset
+and Remove for the player being viewed. With more than one player, the game starts on "Who's
+teaching today?", and the player's button at the top left switches teachers. Saves: `my-classroom-profiles` lists the players and `my-classroom:<id>` holds
+each player's game. An older single save (`my-classroom`) becomes the first player, and is kept
+as a backup for now.
 
 ## Privacy
 

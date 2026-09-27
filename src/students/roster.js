@@ -9,12 +9,13 @@ export const MAX_STUDENTS = MAX_SEATS;
 /**
  * The class list: loads from the device, saves on every change, and tells
  * listeners (the room, the class screen) when something changed.
+ * `saveKey` picks which child's classroom this is (see core/profiles.js).
  *
  * Events: 'change' { kind: 'add' | 'update' | 'remove', student }
  */
-export function createRoster() {
+export function createRoster({ saveKey }) {
   const events = createEmitter();
-  const saved = loadSave();
+  const saved = loadSave(saveKey);
   let data = saved ?? { students: exampleStudents(), settings: {} };
   data.students = (data.students ?? []).map(normalizeStudent).slice(0, MAX_STUDENTS);
   data.settings ??= {};
@@ -23,7 +24,7 @@ export function createRoster() {
   requestPersistentStorage();
 
   function save() {
-    saveOk = writeSave(data);
+    saveOk = writeSave(saveKey, data);
   }
 
   function change(kind, student) {
