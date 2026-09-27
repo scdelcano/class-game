@@ -2,7 +2,7 @@ import { normalize, words, sameWord, similarity } from '../voice/fuzzy.js';
 import { phoneticKey } from '../voice/name-match.js';
 
 /*
- * Did she read it right? Compares what the speech recognizer heard with the
+ * Did the teacher read it right? Compares what the speech recognizer heard with the
  * word or sentence on the board. Recognizers turn sounds into real words,
  * so sound-alikes count ("write" for "right", "butter fly" for "butterfly").
  */

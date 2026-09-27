@@ -74,13 +74,13 @@ src/students/               student.js (saved record), roster.js (class list + s
 src/game/session.js         playtime <-> class time
 src/game/attendance.js      school day, absent students, checkmarks (saved), calling students
 src/game/lesson.js          Math time: teach turns (judge a student) and direct turns (answer)
-src/game/reading-lesson.js  Reading time: students read/spell (she judges and fixes), she reads
+src/game/reading-lesson.js  Reading time: students read/spell (the teacher judges and fixes), the teacher reads
                             (checked by the mic) and spells (keyboard)
 src/learning/               math-facts.js (grade packs 1-4: add a grade there), mastery.js
                             (flashcard-box spaced practice + unlocking), numbers.js (spoken
                             numbers, "Correct!"/"Try again"), store.js (settings, progress, stars),
                             reading-words.js (word packs 1-4, word parts, believable misreadings
-                            and misspellings: add words there), reading-check.js (did she read it?)
+                            and misspellings: add words there), reading-check.js (did the teacher read it?)
 src/world/board-writer.js   writing problems, answers and dot pictures on the chalkboard
 src/ui/lesson-panel.js      math panel + number-pad.js; reading-panel.js; lesson-chooser.js;
                             grownups.js (settings, weekly words, progress)
@@ -100,17 +100,17 @@ src/mic-test/               step 1 test screen
 ## Learning
 
 Math time is "learning by teaching": students raise hands and answer out loud, sometimes wrong on
-purpose, and she judges and corrects them; in some turns a student asks her directly. Every answer
+purpose, and the player judges and corrects them; in some turns a student asks the player directly. Every answer
 feeds a per-fact flashcard box: missed facts return soon, known facts rest. Tables unlock in
 teaching order (×2, ×5, ×10, ×1, ×3, ×4, ×9, ×6, ×7, ×8, ×0), and division for a fact appears once
-she knows the times fact. Grown-ups (press and hold ⚙️ for 2 s) can set the grade (1-4), pick
+the player knows the times fact. Grown-ups (press and hold ⚙️ for 2 s) can set the grade (1-4), pick
 tables, turn ÷/− on or off, set how often students make mistakes, and see progress.
 
 Reading time works the same way: students read a word (sometimes misreading it, like "happy" for
-"unhappy") or write it on the board (sometimes misspelled, like "helpfull"); she judges and fixes it.
-In her own turns she reads aloud (the microphone checks, or "I read it out loud" without a mic) or
-spells a word she only hears. 💡 Help splits words into parts with a meaning tip (un- = not).
-Spelling a word unlocks once she reads it well; the grown-ups' weekly word list is practiced first
+"unhappy") or write it on the board (sometimes misspelled, like "helpfull"); the player judges and fixes it.
+In their own turns the player reads aloud (the microphone checks, or "I read it out loud" without a mic) or
+spells a word they only hear. 💡 Help splits words into parts with a meaning tip (un- = not).
+Spelling a word unlocks once the player reads it well; the grown-ups' weekly word list is practiced first
 and can be spelled right away.
 
 Standards: reading RF.1.3, RF.2.3, RF.3.3 (a-d), RF.3.4 (sentences), RF.4.3; spelling L.3.2e/f.

@@ -95,7 +95,7 @@ export function createGrownups({ learning, onClose }) {
   function gradeSection() {
     const st = learning.settings;
     const pack = learning.math().pack;
-    return section('Grade level', 'Pick her grade (math and reading). Each grade keeps its own progress.',
+    return section('Grade level', 'Pick your child\u2019s grade (math and reading). Each grade keeps its own progress.',
       h('div', { class: 'chip-row' }, ...GRADES.map((g) => chip(`${ordinal(g)} grade`, st.grade === g, () => { learning.setSettings({ grade: g, tables: 'auto', readingGroups: 'auto' }); render(); }))),
       h('p', { class: 'gu-detail' }, `Math: ${pack.title}${pack.standard ? ` · ${pack.standard}` : ''}`),
       h('p', { class: 'gu-detail' }, `Reading: ${learning.reading().pack.title} · ${learning.reading().pack.standard}`),
@@ -118,7 +118,7 @@ export function createGrownups({ learning, onClose }) {
 
   function mistakesSection() {
     const st = learning.settings;
-    return section('Student mistakes', 'How often students answer wrong on purpose, for her to catch.',
+    return section('Student mistakes', 'How often students answer wrong on purpose, for your child to catch.',
       h('div', { class: 'chip-row' },
         chip('A few', st.mistakes === 'few', () => { learning.setSettings({ mistakes: 'few' }); render(); }),
         chip('Some', st.mistakes === 'some', () => { learning.setSettings({ mistakes: 'some' }); render(); }),
@@ -154,7 +154,7 @@ export function createGrownups({ learning, onClose }) {
     const auto = !Array.isArray(st.tables);
     const inverseName = pack.kind === 'mult' ? 'division (÷)' : 'subtraction (−)';
     return section('Which facts', auto
-      ? 'The game starts easy and opens the next group when she knows most of the current ones.'
+      ? 'The game starts easy and opens the next group when your child knows most of the current ones.'
       : 'Only the groups you pick will be practiced.',
     h('div', { class: 'chip-row' },
       chip('✨ Let the game choose', auto, () => { learning.setSettings({ tables: 'auto' }); render(); }, 'wide-chip'),
@@ -172,13 +172,13 @@ export function createGrownups({ learning, onClose }) {
     h('div', { class: 'chip-row' },
       chip(`Include ${inverseName}`, st.division, () => { learning.setSettings({ division: !st.division }); render(); }),
     ),
-    h('p', { class: 'gu-detail' }, `${inverseName[0].toUpperCase()}${inverseName.slice(1)} for a fact appears once she knows the matching ${pack.kind === 'mult' ? 'times' : 'plus'} fact.`),
+    h('p', { class: 'gu-detail' }, `${inverseName[0].toUpperCase()}${inverseName.slice(1)} for a fact appears once your child knows the matching ${pack.kind === 'mult' ? 'times' : 'plus'} fact.`),
     );
   }
 
   function mathProgress() {
     const math = learning.math();
-    return section('Math progress', `${math.pack.title} · colors show how well she knows each fact.`,
+    return section('Math progress', `${math.pack.title} · colors show how well your child knows each fact.`,
       factGrid(math.pack, math),
       h('div', { class: 'legend' }, ...LEVELS.map((l) => h('span', {}, h('i', { style: { background: l.color } }), l.label))),
       trickyList(math),
@@ -195,7 +195,7 @@ export function createGrownups({ learning, onClose }) {
       autocapitalize: 'off',
     });
     box.value = learning.settings.weekWords.join(', ');
-    return section('This week\u2019s words', 'Type her school\u2019s spelling or reading words (commas or new lines). They come up first in reading lessons.',
+    return section('This week\u2019s words', 'Type your child\u2019s school spelling or reading words (commas or new lines). They come up first in reading lessons.',
       box,
       h('div', { class: 'chip-row' },
         h('button', {
@@ -226,7 +226,7 @@ export function createGrownups({ learning, onClose }) {
     const auto = !Array.isArray(st.readingGroups);
     const groups = rd.pack.families.filter((f) => f.id !== CUSTOM_GROUP);
     return section('Which words', auto
-      ? 'Word groups open one at a time as she reads the earlier ones well.'
+      ? 'Word groups open one at a time as your child reads the earlier ones well.'
       : 'Only the groups you pick will be practiced.',
     h('div', { class: 'chip-row' },
       chip('✨ Let the game choose', auto, () => { learning.setSettings({ readingGroups: 'auto' }); render(); }, 'wide-chip'),
@@ -244,7 +244,7 @@ export function createGrownups({ learning, onClose }) {
     h('div', { class: 'chip-row' },
       chip('Include spelling', st.spelling, () => { learning.setSettings({ spelling: !st.spelling }); render(); }),
     ),
-    h('p', { class: 'gu-detail' }, 'Spelling a word comes after she can read it.'),
+    h('p', { class: 'gu-detail' }, 'Spelling a word comes after your child can read it.'),
     );
   }
 
@@ -255,7 +255,7 @@ export function createGrownups({ learning, onClose }) {
     const reads = rd.pack.facts.filter((f) => f.mode === 'read');
     const count = (mode, level) => rd.pack.facts.filter((f) => f.mode === mode && rd.level(f.key) === level).length;
     const tricky = rd.tricky(8);
-    return section('Reading progress', 'Colors: how well she reads each word in the groups in play (underline = spelling).',
+    return section('Reading progress', 'Colors: how well your child reads each word in the groups in play (underline = spelling).',
       h('div', { class: 'tiles' },
         tile(`${count('read', 'mastered')}/${reads.length}`, 'read ✓'),
         tile(String(count('read', 'almost') + count('read', 'learning')), 'reading now'),

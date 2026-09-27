@@ -16,18 +16,18 @@ const TEACH_SHARE = 0.7; // how many problems are "judge a student" vs "you answ
  * Math time. Each problem is one of two kinds of turn:
  *
  *  teach  (learning by teaching)
- *    'hands'   students raise hands; she picks one (tap or say the name)
- *    'judge'   the student answers (sometimes wrong on purpose); she says
+ *    'hands'   students raise hands; the teacher picks one (tap or say the name)
+ *    'judge'   the student answers (sometimes wrong on purpose); the teacher says
  *              Right or Not right
- *    'correct' if she caught a mistake, she gives the right answer
+ *    'correct' if the teacher caught a mistake, they give the right answer
  *
  *  direct
- *    'answer'  a student asks "Teacher, what's 6 × 7?"; she answers
+ *    'answer'  a student asks "Teacher, what's 6 × 7?"; the teacher answers
  *
  *  'review'  after a slip: the right answer and dots stay on the board until Next
  *  'done'    summary, stars, cheering
  *
- * Every answer she gives or judges is recorded in the learning progress,
+ * Every answer the teacher gives or judges is recorded in the learning progress,
  * which decides what comes next.
  * Events: 'change' (state changed), 'unlocked' (a new table opened), 'end'
  */
@@ -125,7 +125,7 @@ export function createLesson({ learning, students, session, board }) {
     events.emit('end');
   }
 
-  /** Save how she did on this problem. */
+  /** Save how the teacher did on this problem. */
   function record(correct, ms) {
     const { unlocked } = learning.math().record(s.problem.fact.key, correct, { ms, hinted: s.hinted });
     learning.logProblem(correct, ms);
@@ -135,7 +135,7 @@ export function createLesson({ learning, students, session, board }) {
   }
 
   // ---------------------------------------------------------------- actions
-  /** She picks who answers (a raised hand, or anyone who's here). */
+  /** The teacher picks who answers (a raised hand, or anyone who's here). */
   function choose(student) {
     if (!s || s.phase !== 'hands') return false;
     students.lowerHands();
@@ -154,7 +154,7 @@ export function createLesson({ learning, students, session, board }) {
     return pick ? choose(pick) : false;
   }
 
-  /** She decides if the student was right. */
+  /** The teacher decides if the student was right. */
   function judge(verdict) {
     if (!s || s.phase !== 'judge') return false;
     const p = s.problem;
@@ -174,14 +174,14 @@ export function createLesson({ learning, students, session, board }) {
       setPhase('praise');
       later(2600, next);
     } else if (verdict === 'wrong' && !studentRight) {
-      // good catch! now she gives the right answer (recorded then)
+      // good catch! now the teacher gives the right answer (recorded then)
       sfx.pop();
       drawBoard({ mark: 'wrong' });
       students.say(s.student, pickFrom(FIX_ASK_LINES));
       feedback('Good catch! What is the right answer?', 'good');
       setPhase('correct', { shownAt: now() });
     } else if (verdict === 'right' && !studentRight) {
-      // she missed the mistake: a classmate notices
+      // the teacher missed the mistake: a classmate notices
       record(false, ms);
       s.hinted = true;
       const helper = pickFrom(students.presentStudents().filter((k) => k.id !== s.student.id)) ?? s.student;
@@ -201,7 +201,7 @@ export function createLesson({ learning, students, session, board }) {
     return true;
   }
 
-  /** She gives an answer (after catching a mistake, or when asked directly). */
+  /** The teacher gives an answer (after catching a mistake, or when asked directly). */
   function answer(n) {
     if (!s || (s.phase !== 'answer' && s.phase !== 'correct')) return false;
     const p = s.problem;

@@ -9,7 +9,7 @@ import { READING_LENGTH } from '../game/reading-lesson.js';
  *   hands          -> 🎲 Pick for me
  *   judge          -> ✓ Right! / ✗ Not right  (+ 🔊 to hear the word)
  *   read, fix-read -> 🎤 Read it!  ·  ✓ I read it out loud  ·  🔊 Hear it
- *   spell, fix-spell -> what she typed + keyboard  ·  🔊 Say it again
+ *   spell, fix-spell -> what the teacher typed + keyboard  ·  🔊 Say it again
  *   review -> Next · done -> Again / Done
  */
 export function createReadingPanel({ lesson, onMic, onOpen, onClose }) {

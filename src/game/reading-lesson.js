@@ -21,12 +21,12 @@ const TEACH_SHARE = 0.55;
  *
  *  read an item (r:)
  *    teach   'hands' -> a student reads it, sometimes wrong -> 'judge'
- *            if she catches it: 'fix-read' (she reads it right)
- *    direct  'read': a student asks her to read it; the mic checks
+ *            if the teacher catches it: 'fix-read' (they read it right)
+ *    direct  'read': a student asks the teacher to read it; the mic checks
  *  spell an item (s:)
  *    teach   'hands' -> a student writes it on the board, sometimes misspelled -> 'judge'
- *            if she catches it: 'fix-spell' (she types the right spelling)
- *    direct  'spell': "How do you spell ___?" she types it
+ *            if the teacher catches it: 'fix-spell' (they type the right spelling)
+ *    direct  'spell': "How do you spell ___?" the teacher types it
  *
  *  'review' after a slip, 'done' at the end.
  * Help ("sound it out") splits the word into parts on the board with a tip;
@@ -115,7 +115,7 @@ export function createReadingLesson({ learning, students, session, board }) {
 
     if (s.turn === 'teach') {
       if (s.mode === 'spell') {
-        // the word is only heard, not shown: she needs to know the spelling to judge it
+        // the word is only heard, not shown: the teacher needs to know the spelling to judge it
         s.written = '✏️ ?';
         drawBoard();
         sayWord();
@@ -178,7 +178,7 @@ export function createReadingLesson({ learning, students, session, board }) {
   }
 
   // ---------------------------------------------------------------- actions
-  /** She picks a student to read or spell. */
+  /** The teacher picks a student to read or spell. */
   function choose(student) {
     if (!s || s.phase !== 'hands') return false;
     students.lowerHands();
@@ -204,7 +204,7 @@ export function createReadingLesson({ learning, students, session, board }) {
     return pick ? choose(pick) : false;
   }
 
-  /** She decides if the student read (or spelled) it right. */
+  /** The teacher decides if the student read (or spelled) it right. */
   function judge(verdict) {
     if (!s || s.phase !== 'judge') return false;
     const ms = now() - s.shownAt;
@@ -265,8 +265,8 @@ export function createReadingLesson({ learning, students, session, board }) {
   }
 
   /**
-   * She read it aloud (from the microphone), or tapped "I read it".
-   * @param {{text: string}[] | null} alternatives  null = she says she read it (no mic)
+   * The teacher read it aloud (from the microphone), or tapped "I read it".
+   * @param {{text: string}[] | null} alternatives  null = the teacher says they read it (no mic)
    */
   function readAloud(alternatives) {
     if (!s || (s.phase !== 'read' && s.phase !== 'fix-read')) return false;
@@ -311,7 +311,7 @@ export function createReadingLesson({ learning, students, session, board }) {
     return true;
   }
 
-  /** She typed a spelling. */
+  /** The teacher typed a spelling. */
   function spell(typed) {
     if (!s || (s.phase !== 'spell' && s.phase !== 'fix-spell')) return false;
     const ms = now() - s.shownAt;

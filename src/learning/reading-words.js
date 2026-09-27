@@ -5,7 +5,7 @@
  *
  * Every word gives two practice items:
  *   r:<word>  read it aloud
- *   s:<word>  spell it (unlocked once she can read it)
+ *   s:<word>  spell it (unlocked once the player can read it)
  * Sentences (fluency) are read-only.
  *
  * All words and sentences are ordinary English; the sentences are original.

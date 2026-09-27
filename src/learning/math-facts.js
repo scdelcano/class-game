@@ -1,6 +1,6 @@
 /*
  * Math fact packs, one per grade. Each pack is a list of "families" in the
- * order they are usually taught; the game unlocks them one at a time as she
+ * order they are usually taught; the game unlocks them one at a time as the player
  * masters the earlier ones.
  *
  * A fact: { key, op, a, b, answer, family, requires? }

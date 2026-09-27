@@ -1,5 +1,5 @@
 /*
- * What she knows, fact by fact, using "flashcard boxes":
+ * What the player knows, fact by fact, using "flashcard boxes":
  *   box 0  new / just missed      -> comes back very soon
  *   box 1-2  learning             -> comes back in a few problems
  *   box 3  almost                 -> comes back later
@@ -122,7 +122,7 @@ export function createMastery(data, pack, options) {
   }
 
   /**
-   * Record how she did on a fact.
+   * Record how the player did on a fact.
    * @returns {{unlocked: object | null}} a newly opened family, if any
    */
   function record(key, correct, { ms = 0, hinted = false } = {}) {
