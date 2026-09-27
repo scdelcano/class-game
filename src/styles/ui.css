@@ -604,3 +604,67 @@
 
 /* grown-ups: tabs (reuses .tabs/.tab from the student editor) */
 .grownups-tabs { width: min(640px, 100%); flex-shrink: 0; }
+
+/* ------------------------------------------------------------ Who's teaching? */
+.picker-screen {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  background: radial-gradient(ellipse at 50% 0%, #fff6d8, var(--sun) 70%);
+}
+.picker-grid {
+  flex: 1;
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  align-content: center;
+  gap: 28px;
+}
+.picker-grid .student-card { width: 230px; padding: 22px 12px 18px; }
+.picker-grid .portrait { width: 160px; height: 160px; }
+.picker-grid .student-name { font-size: 1.6rem; }
+.picker-grid .student-type { font-size: 0.95rem; }
+.picker-emoji { font-size: 96px; line-height: 1; }
+.picker-grownups { font-size: 0.85rem; opacity: 0.85; }
+
+/* grown-ups: players */
+.player-row {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 8px 0;
+  border-bottom: 2px solid #f1ecf8;
+  flex-wrap: wrap;
+}
+.player-emoji { font-size: 2.2rem; line-height: 1; }
+.player-name { flex: 1; font-weight: 900; font-size: 1.15rem; min-width: 10em; }
+.player-detail { display: block; color: var(--ink-soft); font-weight: 700; font-size: 0.8rem; }
+.big-button.small { min-height: 44px; padding: 6px 14px; font-size: 0.9rem; }
+
+.profile-form { text-align: left; width: min(520px, 92vw); max-height: 92vh; overflow-y: auto; }
+.profile-form h2 { margin: 0 0 12px; }
+.profile-form h3 { margin: 14px 0 4px; font-size: 1rem; color: var(--ink-soft); }
+.profile-form .dialog-buttons { margin-top: 18px; }
+.text-input {
+  width: 100%;
+  min-height: var(--tap);
+  border-radius: 14px;
+  border: 3px solid #e3ddef;
+  padding: 8px 14px;
+  font: 800 1.3rem var(--font);
+  color: var(--ink);
+  user-select: text;
+}
+.emoji-chip { font-size: 1.6rem; padding: 4px 10px; }
+.manage-players { max-width: 640px; width: min(640px, 94vw); max-height: 92vh; overflow-y: auto; text-align: left; padding: 20px; }
+.manage-players .gu-section { box-shadow: none; padding: 0; }
+.manage-players .dialog-buttons { margin-top: 14px; }
+
+/* grown-ups: whose settings (only with more than one player) */
+.player-bar { display: flex; flex-wrap: wrap; align-items: center; gap: 8px; flex-shrink: 0; }
+.player-bar-label { font-weight: 900; color: var(--ink-soft); }
+.player-bar small { color: var(--ink-soft); font-weight: 700; }
+.chip.add-player { border-style: dashed; border-color: var(--berry); color: var(--berry-dark); }
+/* looking at someone who isn't playing: a different tint so it's hard to miss */
+.grownups.viewing-other { background: #e9f6ee; }
+.grownups.viewing-other .roster-count { color: var(--good); }
